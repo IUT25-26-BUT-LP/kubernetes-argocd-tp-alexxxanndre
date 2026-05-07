@@ -1,0 +1,30 @@
+name: CI - Build & Scan
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Build Docker image
+        run: docker build -t nginx-app:latest .
+
+      - name: Scan with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: nginx-app:latest
+          format: table
+          exit-code: 1
+          severity: CRITICAL,HIGH
+
+      - name: Push to Harbor
+        if: success()
+        run: |
+          docker tag nginx-app:latest ${{ secrets.HARBOR_URL }}/library/nginx-app:latest
+          echo "${{ secrets.HARBOR_PASSWORD }}" | docker login ${{ secrets.HARBOR_URL }} -u ${{ secrets.HARBOR_USER }} --password-stdin
+          docker push ${{ secrets.HARBOR_URL }}/library/nginx-app:latest
