@@ -14,6 +14,6 @@ spec:
     spec:
       containers:
       - name: nginx
-        image: <HARBOR_URL>/library/nginx-app:latest
+        image: alexxxanndree/nginx-app:latest
         ports:
         - containerPort: 80
